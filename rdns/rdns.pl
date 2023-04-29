@@ -36,6 +36,7 @@ while (my $line = <$input_fh>) {
     if ($line =~ /^\$ORIGIN\s+(\S+)/) {
         $origin = $1;
     } elsif ($line =~ /^(\$TTL\s+\S+|\@\s+SOA\s)/) {
+        # Copy default TTL and SOA record verbatim.
         print "$line\n\n";
     } elsif ($ip_version == 4 && $line =~ /^\s*(\S+)\s+A\s+(\S+)/) {
         my ($hostname, $ipv4) = ($1, $2);
@@ -44,13 +45,12 @@ while (my $line = <$input_fh>) {
             my $reverse_ipv4 = join('.', reverse(split(/\./, $ipv4))) . ".in-addr.arpa";
             print "$reverse_ipv4\tPTR\t$hostname.$origin\n";
         }
-    } elsif ($ip_version == 6 && $line =~ /^\s*(\S+)\s+(\d+)\s+IN\s+AAAA\s+(\S+)/) {
-        print "IPv6\n";
-        my ($hostname, $ttl, $ipv6) = ($1, $2, $3);
+    } elsif ($ip_version == 6 && $line =~ /^\s*(\S+)\s+AAAA\s+(\S+)/) {
+        my ($hostname, $ipv6) = ($1, $2);
         my $ip_obj = new Net::IP($ipv6) or die(Net::IP::Error());
         if ($subnet_obj->overlaps($ip_obj) != $IP_NO_OVERLAP) {
             my $reverse_ipv6 = $ip_obj->reverse_ip();
-            print "$reverse_ipv6\t$ttl\tPTR\t$hostname.$origin\n";
+            print "$reverse_ipv6\tPTR\t$hostname.$origin\n";
         }
     }
 }
