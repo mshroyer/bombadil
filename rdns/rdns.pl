@@ -42,7 +42,7 @@ while (my $line = <$input_fh>) {
         my ($hostname, $ipv4) = ($1, $2);
         my $ip_obj = new Net::IP($ipv4) or die(Net::IP::Error());
         if ($subnet_obj->overlaps($ip_obj) != $IP_NO_OVERLAP) {
-            my $reverse_ipv4 = join('.', reverse(split(/\./, $ipv4))) . ".in-addr.arpa";
+            my $reverse_ipv4 = join('.', reverse(split(/\./, $ipv4))) . ".in-addr.arpa.";
             print "$reverse_ipv4\tPTR\t$hostname.$origin\n";
         }
     } elsif ($ip_version == 6 && $line =~ /^\s*([^\s;]+)\s+AAAA\s+(\S+)/) {
