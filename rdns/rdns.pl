@@ -32,7 +32,7 @@ while (my $line = <$input_fh>) {
 
     if ($line =~ /^\$ORIGIN\s+(\S+)/) {
         $origin = $1;
-    } elsif ($line =~ /^\$TTL\s+\S+/) {
+    } elsif ($line =~ /^(\$TTL\s+\S+|\@\s+SOA\s)/) {
         print "$line\n\n";
     } elsif ($ip_version == 4 && $line =~ /^\s*(\S+)\s+A\s+(\S+)/) {
         my ($hostname, $ipv4) = ($1, $2);
