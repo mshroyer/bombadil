@@ -7,14 +7,16 @@ use Pod::Usage;
 use Getopt::Long;
 use Net::IP qw(:PROC);
 
-my ($help, $subnet);
+my ($help, $man, $subnet);
 
 GetOptions(
     'subnet|s=s'  => \$subnet,
-    'help|?' => \$help,
+    'man' => \$man,
+    'help' => \$help,
 ) or die "Incorrect usage!\n";
 
-pod2usage(1) if $help;
+pod2usage({-verbose => 2}) if $man;
+pod2usage({-verbose => 1}) if $help;
 
 if (@ARGV != 1) {
     die "Usage: $0 --subnet <subnet_prefix/prefix_length> <input_zone_file>\n";
@@ -65,6 +67,19 @@ rdns.pl - Generate reverse DNS zone files
 
 =head1 SYNOPSIS
 
-rdns.pl --input-path foo.zone
+rdns.pl --subnet 192.168.42.0/24 foo.zone
+
+rdns.pl --subnet fd5b:a1f8:cef:1::/64 foo.zone
+
+rdns.pl --man
+
+=head1 DESCRIPTION
+
+This script reads a forward zone file and creates a reverse zone file for the
+specified subnet based on the input's matching A or AAAA records.  $TTL
+directives and SOA records from the input zone are preserved verbatim.
+
+The purpose is to simplify managing reverse DNS zone files as new hosts are
+added to the forward zone file.
 
 =cut
