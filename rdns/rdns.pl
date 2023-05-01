@@ -10,13 +10,13 @@ use Net::IP qw(:PROC);
 my ($help, $man, $subnet);
 
 GetOptions(
-    'subnet|s=s'  => \$subnet,
-    'man' => \$man,
-    'help' => \$help,
+    'subnet|s=s' => \$subnet,
+    'man'        => \$man,
+    'help'       => \$help,
 ) or die "Incorrect usage!\n";
 
-pod2usage({-verbose => 2}) if $man;
-pod2usage({-verbose => 1}) if $help;
+pod2usage({ -verbose => 2 }) if $man;
+pod2usage({ -verbose => 1 }) if $help;
 
 if (@ARGV != 1) {
     die "Usage: $0 --subnet <subnet_prefix/prefix_length> <input_zone_file>\n";
@@ -25,7 +25,7 @@ if (@ARGV != 1) {
 my $input_file = $ARGV[0];
 my $subnet_obj = new Net::IP($subnet) or die(Net::IP::Error());
 my $ip_version = $subnet_obj->version();
-my $origin = "";
+my $origin     = "";
 
 open(my $input_fh, '<', $input_file) or die "Cannot open input file: $!";
 
@@ -38,13 +38,15 @@ while (my $line = <$input_fh>) {
     if ($line =~ /^\$ORIGIN\s+(\S+)/) {
         $origin = $1;
     } elsif ($line =~ /^(\$TTL\s+\S+|\@\s+SOA\s)/) {
+
         # Copy default TTL and SOA record verbatim.
         print "$line\n\n";
     } elsif ($ip_version == 4 && $line =~ /^\s*([^\s;]+)\s+A\s+(\S+)/) {
         my ($hostname, $ipv4) = ($1, $2);
         my $ip_obj = new Net::IP($ipv4) or die(Net::IP::Error());
         if ($subnet_obj->overlaps($ip_obj) != $IP_NO_OVERLAP) {
-            my $reverse_ipv4 = join('.', reverse(split(/\./, $ipv4))) . ".in-addr.arpa.";
+            my $reverse_ipv4 =
+              join('.', reverse(split(/\./, $ipv4))) . ".in-addr.arpa.";
             print "$reverse_ipv4\tPTR\t$hostname.$origin\n";
         }
     } elsif ($ip_version == 6 && $line =~ /^\s*([^\s;]+)\s+AAAA\s+(\S+)/) {
