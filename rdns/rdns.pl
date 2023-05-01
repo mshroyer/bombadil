@@ -20,8 +20,7 @@ pod2usage({ -verbose => 2 }) if $man;
 pod2usage({ -verbose => 1 }) if $help;
 
 if (@ARGV != 1 || !$subnet) {
-    croak
-      "Usage: $0 --subnet <subnet_prefix/prefix_length> <input_zone_file>\n";
+    pod2usage({ -verbose => 1, -exitval => 1 });
 }
 
 my $input_file = $ARGV[0];
