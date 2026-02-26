@@ -8,10 +8,9 @@ use Pod::Usage;
 use Getopt::Long;
 use Net::IP qw(:PROC);
 
-my ( $help, $man, $prefix, $ndp_file );
+my ( $help, $man, $ndp_file );
 
 GetOptions(
-    'prefix|p=s'   => \$prefix,
     'ndp-file|n=s' => \$ndp_file,
     'man'          => \$man,
     'help'         => \$help,
@@ -20,12 +19,12 @@ GetOptions(
 pod2usage( { -verbose => 2 } ) if $man;
 pod2usage( { -verbose => 1 } ) if $help;
 
-if ( @ARGV != 1 || !$prefix ) {
+if ( @ARGV != 1 ) {
     pod2usage( { -verbose => 1, -exitval => 1 } );
 }
 
 my $input_file = $ARGV[0];
-my $prefix_obj = new Net::IP($prefix) or croak( Net::IP::Error() );
+my $gua        = new Net::IP("2000::/3") or croak( Net::IP::Error() );
 my $origin     = "";
 
 # Build NDP table from router: IPv6 -> MAC and MAC -> [IPv6, ...]
@@ -83,7 +82,7 @@ while ( my $line = <$input_fh> ) {
 
         for my $cand_ip ( @{ $mac_to_ips{$mac} } ) {
             my $cand_obj = new Net::IP($cand_ip) or next;
-            if ( $prefix_obj->overlaps($cand_obj) != $IP_NO_OVERLAP ) {
+            if ( $gua->overlaps($cand_obj) != $IP_NO_OVERLAP ) {
                 print "$hostname\tAAAA\t$cand_ip\n";
                 last;
             }
@@ -101,7 +100,7 @@ pubdns.pl - Generate a DNS zone file for public IPv6 addresses
 
 =head1 SYNOPSIS
 
-pubdns.pl --prefix 2001:db8::/32 foo.zone
+pubdns.pl foo.zone
 
 pubdns.pl --man
 
@@ -115,19 +114,14 @@ However, it's still sometimes useful to have forward and reverse DNS entries
 for hosts' public IPv6 addresses.  For example, this allows tcpdump to show
 hostnames instead of IP addresses.
 
-This script takes as input a forward zone file and a known public IPv6 prefix.
-It then uses the router's NDP table to cross-reference the input file's ULA
-host definitions, by MAC address, with any known corresponding addresses under
-the public prefix, outputting a forward zone file for the public prefix.
+This script takes as input a forward zone file.  It uses the router's NDP
+table to cross-reference the input file's ULA host definitions, by MAC
+address, with any known corresponding global unicast addresses, outputting a
+forward zone file for those public addresses.
 
 =head1 OPTIONS
 
 =over 4
-
-=item B<--prefix> I<prefix>, B<-p> I<prefix>
-
-The public IPv6 prefix to generate records for (required).  Only addresses
-within this prefix will be included in the output.
 
 =item B<--ndp-file> I<file>, B<-n> I<file>
 
