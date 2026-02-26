@@ -8,12 +8,13 @@ use Pod::Usage;
 use Getopt::Long;
 use Net::IP qw(:PROC);
 
-my ( $help, $man, $prefix );
+my ( $help, $man, $prefix, $ndp_file );
 
 GetOptions(
-    'prefix|p=s' => \$prefix,
-    'man'        => \$man,
-    'help'       => \$help,
+    'prefix|p=s'   => \$prefix,
+    'ndp-file|n=s' => \$ndp_file,
+    'man'          => \$man,
+    'help'         => \$help,
 ) or croak "Incorrect usage!\n";
 
 pod2usage( { -verbose => 2 } ) if $man;
@@ -31,7 +32,12 @@ my $origin     = "";
 my %ip_to_mac;
 my %mac_to_ips;
 
-open( my $ndp_fh, '-|', 'ndp', '-a' ) or croak "Cannot run ndp: $!";
+my $ndp_fh;
+if ($ndp_file) {
+    open( $ndp_fh, '<', $ndp_file ) or croak "Cannot open ndp file: $!";
+} else {
+    open( $ndp_fh, '-|', 'ndp', '-a' ) or croak "Cannot run ndp: $!";
+}
 while ( my $line = <$ndp_fh> ) {
     chomp $line;
     next if $line =~ /^Neighbor/;    # Skip header
@@ -122,6 +128,11 @@ the public prefix, outputting a forward zone file for the public prefix.
 
 The public IPv6 prefix to generate records for (required).  Only addresses
 within this prefix will be included in the output.
+
+=item B<--ndp-file> I<file>, B<-n> I<file>
+
+Read NDP table data from I<file> instead of running C<ndp -a>.  Intended for
+testing.
 
 =item B<--help>
 
