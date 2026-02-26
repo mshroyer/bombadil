@@ -36,7 +36,7 @@ my $ndp_fh;
 if ($ndp_file) {
     open( $ndp_fh, '<', $ndp_file ) or croak "Cannot open ndp file: $!";
 } else {
-    open( $ndp_fh, '-|', 'ndp', '-a' ) or croak "Cannot run ndp: $!";
+    open( $ndp_fh, '-|', 'ndp', '-an' ) or croak "Cannot run ndp: $!";
 }
 while ( my $line = <$ndp_fh> ) {
     chomp $line;
