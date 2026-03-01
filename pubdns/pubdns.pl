@@ -20,21 +20,22 @@ GetOptions(
 pod2usage( { -verbose => 2 } ) if $man;
 pod2usage( { -verbose => 1 } ) if $help;
 
-if ( @ARGV != 1 || ! defined $origin ) {
+if ( @ARGV != 1 || !defined $origin ) {
     pod2usage( { -verbose => 1, -exitval => 1 } );
 }
 
 my $input_file = $ARGV[0];
-my $gua        = new Net::IP("2000::/3") or croak( Net::IP::Error() );
+my $gua        = new Net::IP( "2000::/3" ) or croak( Net::IP::Error() );
 
 # Build NDP table from router: IPv6 -> MAC and MAC -> [IPv6, ...]
 my %ip_to_mac;
 my %mac_to_ips;
 
 my $ndp_fh;
-if ($ndp_file) {
+if ( $ndp_file ) {
     open( $ndp_fh, '<', $ndp_file ) or croak "Cannot open ndp file: $!";
-} else {
+}
+else {
     open( $ndp_fh, '-|', 'ndp', '-an' ) or croak "Cannot run ndp: $!";
 }
 while ( my $line = <$ndp_fh> ) {
@@ -46,15 +47,15 @@ while ( my $line = <$ndp_fh> ) {
 
     # Match lines with a valid MAC address in the linklayer column
     if ( $line =~ /^(\S+)\s+([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+/i ) {
-        my ( $ip_str, $mac ) = ( $1, lc($2) );
-        my $ip_obj = new Net::IP($ip_str) or next;
+        my ( $ip_str, $mac ) = ( $1, lc( $2 ) );
+        my $ip_obj  = new Net::IP( $ip_str ) or next;
         my $ip_full = lc( $ip_obj->ip() );
 
         $ip_to_mac{$ip_full} = $mac;
         push @{ $mac_to_ips{$mac} }, $ip_full;
     }
 }
-close($ndp_fh);
+close( $ndp_fh );
 
 open( my $input_fh, '<', $input_file ) or croak "Cannot open input file: $!";
 
@@ -64,7 +65,7 @@ print "\n";
 print "\$ORIGIN $origin\n";
 
 while ( my $line = <$input_fh> ) {
-    chomp($line);
+    chomp( $line );
 
     if ( $line =~ /^(\$TTL\s+\S+|\@\s+SOA\s)/ ) {
 
@@ -73,15 +74,15 @@ while ( my $line = <$input_fh> ) {
     }
     elsif ( $line =~ /^\s*([^\s;]+)\s+AAAA\s+(\S+)/ ) {
         my ( $hostname, $ula ) = ( $1, $2 );
-        my $ula_obj = new Net::IP($ula) or next;
+        my $ula_obj  = new Net::IP( $ula ) or next;
         my $ula_full = lc( $ula_obj->ip() );
 
         my $mac = $ip_to_mac{$ula_full};
         next unless defined $mac;
 
         for my $cand_ip ( @{ $mac_to_ips{$mac} } ) {
-            my $cand_obj = new Net::IP($cand_ip) or next;
-            if ( $gua->overlaps($cand_obj) != $IP_NO_OVERLAP ) {
+            my $cand_obj = new Net::IP( $cand_ip ) or next;
+            if ( $gua->overlaps( $cand_obj ) != $IP_NO_OVERLAP ) {
                 print "$hostname\tAAAA\t$cand_ip\n";
                 last;
             }
@@ -89,7 +90,7 @@ while ( my $line = <$input_fh> ) {
     }
 }
 
-close($input_fh);
+close( $input_fh );
 
 __END__
 

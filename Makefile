@@ -5,4 +5,4 @@ test:
 	prove lib/Bombadil/t/
 
 tidy:
-	perltidy -ce -pt=2 -b **/*.pl
+	perltidy -pt=0 -b **/*.pl
