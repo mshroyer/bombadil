@@ -1,4 +1,4 @@
-package PFTable;
+package Bombadil::PFTable;
 
 use warnings;
 use strict;
@@ -18,11 +18,11 @@ __END__
 
 =head1 NAME
 
-PFTable - Placeholder module
+Bombadil::PFTable - Placeholder module
 
 =head1 SYNOPSIS
 
-    use PFTable qw(add);
+    use Bombadil::PFTable qw(add);
 
     my $sum = add(2, 3);
 
